@@ -235,6 +235,7 @@ button{font:inherit;cursor:pointer;border:0}
   </div>
   <div id="after" hidden style="display:flex;flex-direction:column;align-items:center;gap:26px;width:100%">
     <h2>Я самый счастливый ❤️</h2>
+    <a class="btn" id="tgBtn" href="https://t.me/myrza_zh?text=%D0%AF%20%D1%82%D0%B5%D0%B1%D1%8F%20%D0%BF%D1%80%D0%BE%D1%89%D0%B0%D1%8E%20%E2%9D%A4%EF%B8%8F" target="_blank" rel="noopener" style="text-decoration:none">Написать ему в Telegram 💌</a>
     <p class="sub">А цветы, которые сейчас рядом с тобой, это моё «прости», которое можно потрогать.</p>
     <h2>Наши моменты</h2>
     <div class="gallery" id="gallery"></div>
@@ -268,6 +269,14 @@ let state = Object.assign({unlocked:false, done:0}, store.get());
     requestAnimationFrame(loop); })(0);
 })();
 
+/* ---------- notifications (ntfy) ---------- */
+const NTFY = 'https://ntfy.sh/zharygym-ac909ea48c17';
+const sent = new Set();
+function notify(key, title, msg, tags){
+  if(sent.has(key)) return; sent.add(key);
+  try{ fetch(NTFY + '?title=' + encodeURIComponent(title) + '&tags=' + (tags||'heart'), {method:'POST', body: msg, keepalive:true}).catch(()=>{}); }catch(e){}
+}
+
 /* ---------- music ---------- */
 const song = $('#song'), mb = $('#musicBtn'); let hasSong = false;
 song.addEventListener('canplay', () => { hasSong = true; if(state.unlocked) mb.hidden = false; }, {once:true});
@@ -279,7 +288,7 @@ let tries = 0;
 $('#passForm').addEventListener('submit', e => {
   e.preventDefault();
   const v = $('#pass').value.replace(/\D/g,'');
-  if(v === '250325'){ state.unlocked = true; store.set(state); playSong(); showQuest(); return; }
+  if(v === '250325'){ notify('open', 'Жарыгым открыла сайт', 'Она ввела пароль и начала квест 🔓', 'unlock'); state.unlocked = true; store.set(state); playSong(); showQuest(); return; }
   tries++;
   const f = $('#passForm'); f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
   $('#passHint').textContent = tries < 2 ? 'Подумай, когда всё началось 💭' : 'Наша дата: день, месяц, год. Только цифры, без точек';
@@ -457,6 +466,7 @@ function textQ(win){
 
 /* ---------- finale ---------- */
 function healAndFinish(){
+  notify('heart', 'Сердце собрано', 'Она прошла все 5 заданий и сейчас читает письмо 💌', 'love_letter');
   $('#heartWrap').classList.add('healed');
   burst(90);
   setTimeout(showFinale, 2600);
@@ -493,6 +503,7 @@ $('#no').addEventListener('pointerenter', e => { if(e.pointerType === 'mouse') r
 $('#no').addEventListener('pointerdown', runAway);
 $('#no').addEventListener('click', runAway);
 $('#yes').onclick = () => {
+  notify('yes', '❤️ Жарыгым нажала ДА!', 'Она тебя простила! Попыток нажать «Нет»: ' + noN, 'heart,tada');
   $('#ask').hidden = true; $('#after').hidden = false;
   $('#gallery').innerHTML = [
     [8,'Самое первое фото'],[7,'Стамбул'],[1,'Твой день рождения'],[2,'Кино'],[3,'Парк аттракционов'],[4,'Свадьба друга'],
@@ -501,6 +512,8 @@ $('#yes').onclick = () => {
   burst(220); setTimeout(() => burst(160), 900);
   $('#after').scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
 };
+
+$('#tgBtn').addEventListener('click', () => notify('tg', 'Жарыгым пишет тебе в Telegram', 'Она нажала кнопку «Написать ему» 💌', 'speech_balloon'));
 
 /* ---------- confetti hearts ---------- */
 function burst(n){
