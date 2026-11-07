@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>Сердце для Жарыгым</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&family=Caveat:wght@500;700&family=Manrope:wght@400;500;700&display=swap">
+<style>
+/* Layout: one night-sky stage; a broken neon heart in the centre, tasks open as cards over it */
+:root{
+  --night:#0b0c1d;
+  --night-2:#15162e;
+  --rose:#ff4f84;
+  --rose-deep:#b8124f;
+  --blush:#ffc2d4;
+  --gold:#ffd89e;
+  --ink:#f6edf1;
+  --muted:#a59fbf;
+  --paper:#fbf6ef;
+  --paper-ink:#3a2a33;
+  --ok:#7be0a8;
+  --display:"Cormorant Garamond", "Times New Roman", serif;
+  --body:"Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --hand:"Caveat", "Segoe Print", cursive;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  background:radial-gradient(ellipse at 50% 30%, var(--night-2) 0%, var(--night) 70%) fixed, var(--night);
+  color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  -webkit-tap-highlight-color:transparent;overflow-x:hidden;
+}
+#sky{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.screen{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:22px;text-align:center;padding-block:32px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+h1,h2{font-family:var(--display);font-weight:600;font-style:italic;text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(2rem, 7vw, 3.1rem)}
+h2{font-size:clamp(1.6rem, 5.5vw, 2.2rem)}
+p{margin:0}
+.sub{color:var(--muted);max-width:34ch}
+.eyebrow{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--blush);opacity:.8}
+
+button{font:inherit;cursor:pointer;border:0}
+.btn{background:linear-gradient(135deg, var(--rose), var(--rose-deep));color:#fff;font-weight:700;
+  padding:14px 28px;border-radius:999px;box-shadow:0 0 24px rgba(255,79,132,.45);transition:transform .15s, box-shadow .2s}
+.btn:hover{transform:translateY(-2px);box-shadow:0 0 34px rgba(255,79,132,.7)}
+.btn:active{transform:scale(.97)}
+.btn:focus-visible,.opt:focus-visible,input:focus-visible,.tile:focus-visible,.card:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.btn.ghost{background:transparent;border:1px solid rgba(255,194,212,.4);box-shadow:none;color:var(--blush)}
+
+/* lock */
+.lock-heart{font-size:3rem;animation:beat 1.6s infinite}
+.pass{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.pass input{background:rgba(255,255,255,.06);border:1px solid rgba(255,194,212,.35);color:var(--ink);
+  font:600 1.4rem var(--body);letter-spacing:.3em;text-align:center;width:min(220px, 70vw);padding:12px 14px;border-radius:14px}
+.pass input::placeholder{color:rgba(165,159,191,.6);letter-spacing:.2em}
+.hint{min-height:1.5em;color:var(--blush);font-family:var(--hand);font-size:1.35rem}
+.shake{animation:shake .4s}
+
+/* heart */
+.heart-wrap{width:min(80vw, 360px);aspect-ratio:200/180;max-width:100%}
+.heart-wrap svg{width:100%;height:100%;overflow:visible;filter:drop-shadow(0 0 18px rgba(255,79,132,.35))}
+.piece{transform-box:view-box;transform-origin:100px 90px;transition:transform 1.1s cubic-bezier(.2,.9,.25,1.2), opacity .6s;cursor:default}
+.piece path{fill:url(#rg);opacity:.18;transition:opacity .8s}
+.piece.active{cursor:pointer}
+.piece.active path{opacity:.75;animation:glow 1.4s ease-in-out infinite}
+.piece.done path{opacity:1}
+.cracks{fill:none;stroke:var(--night);stroke-width:2.4;stroke-linejoin:round;opacity:0;transition:stroke .8s, opacity 1.4s}
+.assembled .cracks{opacity:1}
+.healed .cracks{stroke:var(--gold);opacity:0}
+.healed svg{animation:beat 1.3s infinite;filter:drop-shadow(0 0 30px rgba(255,79,132,.75))}
+.progress{display:flex;gap:10px;justify-content:center}
+.progress i{width:12px;height:12px;border-radius:50%;border:1px solid var(--blush);display:block;transition:background .4s}
+.progress i.on{background:var(--rose);border-color:var(--rose);box-shadow:0 0 10px var(--rose)}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:20;background:rgba(6,6,16,.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;overflow-y:auto;
+  padding:calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.sheet{width:min(440px, 100%);background:linear-gradient(180deg, #1c1c3a, #13132a);border:1px solid rgba(255,194,212,.18);
+  border-radius:22px;padding:24px 20px;display:flex;flex-direction:column;gap:16px;align-items:center;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);animation:pop .35s ease-out;margin:auto}
+.sheet .q{font-size:1.1rem;font-weight:500}
+.opts{display:grid;gap:10px;width:100%}
+.opt{background:rgba(255,255,255,.05);border:1px solid rgba(255,194,212,.22);color:var(--ink);padding:12px 16px;border-radius:14px;text-align:left;transition:background .2s}
+.opt:hover{background:rgba(255,79,132,.12)}
+.opt.right{background:rgba(123,224,168,.18);border-color:var(--ok)}
+.opt.wrong{background:rgba(255,79,132,.2);border-color:var(--rose)}
+.small{font-size:.85rem;color:var(--muted)}
+
+.puzzle{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;width:min(320px, 80vw);aspect-ratio:4/3}
+.tile{background-size:300% 300%;border-radius:6px;transition:transform .15s, outline .15s;padding:0}
+.tile.sel{outline:3px solid var(--gold);transform:scale(.94)}
+
+#game{width:min(320px, 80vw);aspect-ratio:320/380;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,194,212,.18);touch-action:none;display:block}
+
+.memory{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:min(340px, 84vw)}
+.card{aspect-ratio:3/4;perspective:600px;background:none;padding:0}
+.card .in{position:relative;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.card.open .in,.card.got .in{transform:rotateY(180deg)}
+.card .f,.card .b{position:absolute;inset:0;border-radius:10px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.card .b{background:linear-gradient(135deg, var(--rose-deep), #4b1b5e);display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:1px solid rgba(255,194,212,.3)}
+.card .f{transform:rotateY(180deg);background-size:cover;background-position:center}
+.card.got .f{box-shadow:0 0 0 2px var(--ok)}
+
+.answer{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,194,212,.35);color:var(--ink);font:500 1.1rem var(--body);padding:12px 14px;border-radius:14px;text-align:center}
+
+/* polaroid */
+.polaroid{background:var(--paper);padding:12px 12px 16px;border-radius:4px;box-shadow:0 14px 40px rgba(0,0,0,.5);transform:rotate(-2deg);width:min(330px, 82vw);animation:drop .6s cubic-bezier(.2,.9,.3,1.3)}
+.polaroid img{display:block;width:100%;max-height:48vh;object-fit:cover;border-radius:2px}
+.polaroid .cap{font-family:var(--hand);color:var(--paper-ink);font-size:1.35rem;line-height:1.2;margin-top:10px;text-wrap:balance}
+
+/* finale */
+#finale{justify-content:flex-start;gap:28px;padding-block:40px 80px}
+#finale .heart-wrap{width:min(46vw, 200px)}
+.facts{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.fact{border:1px solid rgba(255,194,212,.25);border-radius:16px;padding:12px 16px;min-width:130px}
+.fact b{display:block;font-family:var(--display);font-size:2rem;font-weight:600;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1}
+.fact span{font-size:.8rem;color:var(--muted)}
+.letter{background:var(--paper);color:var(--paper-ink);max-width:560px;width:100%;border-radius:6px;padding:28px 24px;text-align:left;
+  font-family:var(--hand);font-size:1.5rem;line-height:1.35;box-shadow:0 20px 60px rgba(0,0,0,.45);min-height:8em;
+  background-image:repeating-linear-gradient(transparent 0 calc(2.025rem - 1px), rgba(184,18,79,.12) calc(2.025rem - 1px) 2.025rem)}
+#letterText{white-space:pre-line}
+.letter .sign{display:block;text-align:right;margin-top:12px}
+.caret::after{content:"|";animation:blink 1s steps(1) infinite;color:var(--rose)}
+.ask{position:relative;width:min(520px, 100%);min-height:220px;display:flex;flex-direction:column;align-items:center;gap:22px}
+.ask .row{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap;min-height:90px}
+#yes{transition:transform .25s}
+#no{background:rgba(255,255,255,.08);color:var(--muted);padding:12px 22px;border-radius:999px;transition:left .25s, top .25s}
+#no.run{position:absolute}
+.coupons{display:grid;grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));gap:14px;width:min(760px, 100%)}
+.coupon{background:var(--paper);color:var(--paper-ink);border-radius:12px;padding:16px 18px;text-align:left;position:relative;
+  border:2px dashed rgba(184,18,79,.45);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.coupon small{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--rose-deep);font-weight:700}
+.coupon p{font-family:var(--hand);font-size:1.4rem;line-height:1.2;margin-top:4px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));gap:18px;width:min(900px, 100%)}
+.gallery figure{margin:0;background:var(--paper);padding:8px 8px 10px;border-radius:3px;box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.gallery figure:nth-child(odd){transform:rotate(-2.5deg)}
+.gallery figure:nth-child(even){transform:rotate(2deg)}
+.gallery img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.gallery figcaption{font-family:var(--hand);color:var(--paper-ink);font-size:1.15rem;margin-top:6px;line-height:1.1}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+.music{position:fixed;z-index:15;right:calc(14px + env(safe-area-inset-right, 0px));bottom:calc(14px + env(safe-area-inset-bottom, 0px));
+  width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);color:var(--blush);border:1px solid rgba(255,194,212,.3);font-size:1.1rem}
+
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.08)}30%{transform:scale(.98)}45%{transform:scale(1.05)}}
+@keyframes glow{0%,100%{opacity:.55}50%{opacity:.95}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes drop{from{transform:translateY(-30px) rotate(-8deg);opacity:0}to{transform:rotate(-2deg);opacity:1}}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+</head>
+<body>
+<canvas id="sky"></canvas>
+<canvas id="confetti"></canvas>
+<audio id="song" src="music.mp3" loop preload="auto"></audio>
+<button class="music" id="musicBtn" hidden aria-label="Музыка">♪</button>
+
+<!-- 0. LOCK -->
+<section class="screen" id="lock">
+  <div class="lock-heart" aria-hidden="true">🔒</div>
+  <p class="eyebrow">Только для Жарыгым🤍</p>
+  <h1>Жарыгым, это для тебя</h1>
+  <p class="sub">Введи пароль. Это день, с которого всё началось.</p>
+  <form class="pass" id="passForm" autocomplete="off">
+    <input id="pass" inputmode="numeric" maxlength="10" placeholder="••••••" aria-label="Пароль">
+    <button class="btn" type="submit">Открыть</button>
+  </form>
+  <p class="hint" id="passHint"></p>
+</section>
+
+<!-- 1. QUEST -->
+<section class="screen" id="quest" hidden>
+  <p class="eyebrow">5 кусочков · 5 воспоминаний</p>
+  <h1>Я разбил твоё сердце.<br>Помоги мне собрать его обратно…</h1>
+  <div class="heart-wrap" id="heartWrap">
+    <svg viewBox="0 0 200 180" aria-label="Разбитое сердце">
+      <defs>
+        <radialGradient id="rg" cx="40%" cy="30%" r="80%">
+          <stop offset="0" stop-color="#ff8fb1"/><stop offset=".55" stop-color="#ff4f84"/><stop offset="1" stop-color="#b8124f"/>
+        </radialGradient>
+        <path id="hp" d="M100 170 C 40 125, 0 90, 0 50 C 0 20, 25 0, 52 0 C 75 0, 92 15, 100 32 C 108 15, 125 0, 148 0 C 175 0, 200 20, 200 50 C 200 90, 160 125, 100 170 Z"/>
+        <clipPath id="cA"><polygon points="-10,-10 100,-10 100,32 92,60 60,72 30,62 -10,75"/></clipPath>
+        <clipPath id="cB"><polygon points="100,-10 210,-10 210,70 170,64 140,80 106,85 92,60 100,32"/></clipPath>
+        <clipPath id="cC"><polygon points="-10,75 30,62 60,72 92,60 106,85 95,115 72,108 45,122 -10,110"/></clipPath>
+        <clipPath id="cD"><polygon points="210,70 170,64 140,80 106,85 95,115 125,128 150,112 210,118"/></clipPath>
+        <clipPath id="cE"><polygon points="-10,110 45,122 72,108 95,115 125,128 150,112 210,118 210,190 -10,190"/></clipPath>
+        <clipPath id="cH"><use href="#hp"/></clipPath>
+      </defs>
+      <g class="piece" data-i="0" data-off="translate(-12px,-10px) rotate(-6deg)"><path clip-path="url(#cA)" d="M100 170 C 40 125, 0 90, 0 50 C 0 20, 25 0, 52 0 C 75 0, 92 15, 100 32 C 108 15, 125 0, 148 0 C 175 0, 200 20, 200 50 C 200 90, 160 125, 100 170 Z"/></g>
+      <g class="piece" data-i="1" data-off="translate(13px,-9px) rotate(6deg)"><path clip-path="url(#cB)" d="M100 170 C 40 125, 0 90, 0 50 C 0 20, 25 0, 52 0 C 75 0, 92 15, 100 32 C 108 15, 125 0, 148 0 C 175 0, 200 20, 200 50 C 200 90, 160 125, 100 170 Z"/></g>
+      <g class="piece" data-i="2" data-off="translate(-15px,4px) rotate(-4deg)"><path clip-path="url(#cC)" d="M100 170 C 40 125, 0 90, 0 50 C 0 20, 25 0, 52 0 C 75 0, 92 15, 100 32 C 108 15, 125 0, 148 0 C 175 0, 200 20, 200 50 C 200 90, 160 125, 100 170 Z"/></g>
+      <g class="piece" data-i="3" data-off="translate(15px,6px) rotate(4deg)"><path clip-path="url(#cD)" d="M100 170 C 40 125, 0 90, 0 50 C 0 20, 25 0, 52 0 C 75 0, 92 15, 100 32 C 108 15, 125 0, 148 0 C 175 0, 200 20, 200 50 C 200 90, 160 125, 100 170 Z"/></g>
+      <g class="piece" data-i="4" data-off="translate(2px,14px) rotate(3deg)"><path clip-path="url(#cE)" d="M100 170 C 40 125, 0 90, 0 50 C 0 20, 25 0, 52 0 C 75 0, 92 15, 100 32 C 108 15, 125 0, 148 0 C 175 0, 200 20, 200 50 C 200 90, 160 125, 100 170 Z"/></g>
+      <g class="cracks" clip-path="url(#cH)">
+        <polyline points="-5,74 30,62 60,72 92,60 100,32"/>
+        <polyline points="92,60 106,85 95,115"/>
+        <polyline points="106,85 140,80 170,64 205,70"/>
+        <polyline points="-5,110 45,122 72,108 95,115 125,128 150,112 205,118"/>
+      </g>
+    </svg>
+  </div>
+  <div class="progress" id="dots"><i></i><i></i><i></i><i></i><i></i></div>
+  <button class="btn" id="goBtn">Собрать кусочек 1</button>
+  <p class="small">Нажми на светящийся кусочек или на кнопку</p>
+</section>
+
+<!-- 2. FINALE -->
+<section class="screen" id="finale" hidden>
+  <div class="heart-wrap healed" id="finalHeart"></div>
+  <p class="eyebrow">Сердце снова целое</p>
+  <h1>Жарыгым, спасибо, что собрала его</h1>
+  <div class="facts">
+    <div class="fact"><b id="days">0</b><span>дней вместе</span></div>
+    <div class="fact"><b>~20</b><span>лет знаем друг друга</span></div>
+    <div class="fact"><b>1</b><span>любовь на всю жизнь</span></div>
+  </div>
+  <p class="small" id="skipHint">Нажми на письмо, чтобы показать его целиком</p>
+  <div class="letter" id="letter" aria-live="polite"><span id="letterText" class="caret"></span></div>
+  <div class="ask" id="ask" hidden>
+    <h2>Ты меня простишь?</h2>
+    <div class="row" id="askRow">
+      <button class="btn" id="yes">Да ❤️</button>
+      <button id="no">Нет</button>
+    </div>
+  </div>
+  <div id="after" hidden style="display:flex;flex-direction:column;align-items:center;gap:26px;width:100%">
+    <h2>Я самый счастливый ❤️</h2>
+    <p class="sub">А цветы, которые сейчас рядом с тобой, это моё «прости», которое можно потрогать.</p>
+    <h2>Наши моменты</h2>
+    <div class="gallery" id="gallery"></div>
+    <p class="hint">Считаю дни до нашей следующей встречи. Люблю тебя, жаным ❤️</p>
+  </div>
+</section>
+
+<div class="modal" id="modal" hidden><div class="sheet" id="sheet"></div></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PH = n => 'photos/p' + n + '.jpg';
+const store = {
+  get(){ try{ return JSON.parse(localStorage.getItem('zh-quest') || '{}'); }catch(e){ return {}; } },
+  set(v){ try{ localStorage.setItem('zh-quest', JSON.stringify(v)); }catch(e){} }
+};
+let state = Object.assign({unlocked:false, done:0}, store.get());
+
+/* ---------- sky ---------- */
+(function sky(){
+  const c = $('#sky'), x = c.getContext('2d'); let W,H,pts=[];
+  function size(){ const d = devicePixelRatio||1; W=innerWidth; H=innerHeight; c.width=W*d; c.height=H*d; x.setTransform(d,0,0,d,0,0);
+    pts = Array.from({length: Math.round(W*H/9000)}, () => ({x:Math.random()*W, y:Math.random()*H, r:Math.random()*1.8+.4, v:Math.random()*.25+.05, p:Math.random()*6.28, h:Math.random()<.35})); }
+  size(); addEventListener('resize', size);
+  (function loop(t){ x.clearRect(0,0,W,H);
+    for(const p of pts){ if(!reduce){ p.y -= p.v; if(p.y < -5){ p.y = H+5; p.x = Math.random()*W; } }
+      const a = .35 + .35*Math.sin(t/900 + p.p);
+      x.beginPath(); x.fillStyle = p.h ? `rgba(255,120,160,${a})` : `rgba(255,216,158,${a*.8})`;
+      x.shadowBlur = 8; x.shadowColor = p.h ? '#ff4f84' : '#ffd89e'; x.arc(p.x,p.y,p.r,0,6.28); x.fill(); }
+    requestAnimationFrame(loop); })(0);
+})();
+
+/* ---------- music ---------- */
+const song = $('#song'), mb = $('#musicBtn'); let hasSong = false;
+song.addEventListener('canplay', () => { hasSong = true; if(state.unlocked) mb.hidden = false; }, {once:true});
+function playSong(){ song.volume = .55; song.play().then(()=>{ mb.hidden = false; mb.textContent='♪'; }).catch(()=>{}); }
+mb.onclick = () => { if(song.paused){ song.play().catch(()=>{}); mb.textContent='♪'; } else { song.pause(); mb.textContent='✕'; } };
+
+/* ---------- lock ---------- */
+let tries = 0;
+$('#passForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('#pass').value.replace(/\D/g,'');
+  if(v === '250325'){ state.unlocked = true; store.set(state); playSong(); showQuest(); return; }
+  tries++;
+  const f = $('#passForm'); f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
+  $('#passHint').textContent = tries < 2 ? 'Подумай, когда всё началось 💭' : 'Наша дата: день, месяц, год. Только цифры, без точек';
+});
+
+/* ---------- quest ---------- */
+const pieces = [...document.querySelectorAll('.piece')];
+function renderHeart(){
+  pieces.forEach((g,i) => {
+    const done = i < state.done, active = i === state.done;
+    g.classList.toggle('done', done); g.classList.toggle('active', active);
+    g.style.transform = done ? 'none' : g.dataset.off;
+  });
+  $('#heartWrap').classList.toggle('assembled', state.done >= 5);
+  [...$('#dots').children].forEach((d,i) => d.classList.toggle('on', i < state.done));
+  $('#goBtn').textContent = 'Собрать кусочек ' + (state.done+1);
+  $('#goBtn').hidden = state.done >= 5;
+}
+function showQuest(){
+  if(state.done >= 5){ showFinale(); return; }
+  $('#lock').hidden = true; $('#quest').hidden = false; renderHeart();
+}
+pieces.forEach(g => g.addEventListener('click', () => { if(g.classList.contains('active')) openTask(state.done); }));
+$('#goBtn').onclick = () => openTask(state.done);
+
+const modal = $('#modal'), sheet = $('#sheet');
+let stopGame = null;
+function closeModal(){ modal.hidden = true; sheet.innerHTML = ''; if(stopGame){ stopGame(); stopGame = null; } }
+
+const rewards = [
+  {img:8,  cap:'13 февраля 2025. Кино, KFC, долгая прогулка и наше самое первое фото. Мы тогда ещё не встречались, а я уже не хотел, чтобы этот вечер заканчивался.'},
+  {img:7,  cap:'Стамбул. Наша первая поездка, первые обнимашки прямо в аэропорту. Я до сих пор помню это чувство.'},
+  {img:2,  cap:'Кино — наше место. С тобой мне интересен любой фильм, потому что я всё равно смотрю на тебя.'},
+  {img:10, cap:'Горнолыжка. Чуть не поссорились, пока не сделали это фото. Я переживаю за тебя, потому что ты моё самое дорогое. Но я понял: беречь не значит запрещать.'},
+  {img:11, cap:'14 февраля. Наша первая валентинка. Хочу, чтобы их было ещё очень-очень много.'}
+];
+
+function openTask(i){
+  modal.hidden = false; sheet.innerHTML = '';
+  [quiz, puzzle, catcher, memory, textQ][i](() => reward(i));
+}
+function head(n, title, text){
+  sheet.insertAdjacentHTML('beforeend', `<p class="eyebrow">Кусочек ${n} из 5</p><h2>${title}</h2>${text?`<p class="small">${text}</p>`:''}`);
+}
+function reward(i){
+  if(stopGame){ stopGame(); stopGame = null; }
+  const r = rewards[i];
+  sheet.innerHTML = `<p class="eyebrow">Кусочек ${i+1} твой</p>
+    <div class="polaroid"><img src="${PH(r.img)}" alt=""><p class="cap">${r.cap}</p></div>
+    <button class="btn" id="place">${i<4?'Вставить кусочек ❤️':'Вставить последний кусочек ❤️'}</button>`;
+  $('#place').onclick = () => {
+    closeModal(); state.done = i+1; store.set(state); renderHeart();
+    if(state.done >= 5) setTimeout(healAndFinish, 1300);
+  };
+}
+
+/* task 1: quiz */
+function quiz(win){
+  const Q = [
+    {q:'Когда мы впервые сфоткались вместе?', o:['14 февраля 2025','13 февраля 2025','25 марта 2025','1 января 2025'], a:1},
+    {q:'Где были наши самые первые обнимашки?', o:['На Иссык-Куле','В кинотеатре','В аэропорту Стамбула','В Ташкенте'], a:2},
+    {q:'Какой вкус бабл ти ты всегда берёшь в Li Li Mo?', o:['Личи','Манго','Таро','Бифидо'], a:3}
+  ];
+  let k = 0;
+  head(1, 'Помнишь?', 'Три вопроса о нас');
+  const box = document.createElement('div'); box.style.cssText='display:flex;flex-direction:column;gap:14px;width:100%'; sheet.append(box);
+  function show(){
+    const q = Q[k];
+    box.innerHTML = `<p class="small">Вопрос ${k+1} из ${Q.length}</p><p class="q">${q.q}</p><div class="opts">${q.o.map((o,j)=>`<button class="opt" data-j="${j}">${o}</button>`).join('')}</div><p class="hint" id="qh"></p>`;
+    box.querySelectorAll('.opt').forEach(b => b.onclick = () => {
+      if(+b.dataset.j === q.a){ b.classList.add('right'); $('#qh').textContent = 'Да! ❤️'; setTimeout(()=>{ k++; k<Q.length ? show() : win(); }, 700); }
+      else { b.classList.add('wrong','shake'); $('#qh').textContent = ['Не-а 😅','Подумай ещё 🙈','Почти!'][Math.floor(Math.random()*3)]; }
+    });
+  }
+  show();
+}
+
+/* task 2: puzzle */
+function puzzle(win){
+  head(2, 'Собери нас', 'Нажми на две плитки, чтобы поменять их местами');
+  const g = document.createElement('div'); g.className = 'puzzle'; sheet.append(g);
+  let ord = [...Array(9).keys()];
+  do{ ord.sort(() => Math.random() - .5); } while(ord.every((v,i)=>v===i));
+  let sel = null;
+  function draw(){
+    g.innerHTML = '';
+    ord.forEach((t,pos) => {
+      const b = document.createElement('button'); b.className = 'tile' + (sel===pos?' sel':''); b.setAttribute('aria-label','Плитка '+(pos+1));
+      b.style.backgroundImage = `url(${PH(7)})`; b.style.backgroundPosition = `${(t%3)*50}% ${Math.floor(t/3)*50}%`;
+      b.onclick = () => {
+        if(sel === null){ sel = pos; draw(); return; }
+        [ord[sel], ord[pos]] = [ord[pos], ord[sel]]; sel = null; draw();
+        if(ord.every((v,i)=>v===i)){ g.style.gap='0'; setTimeout(win, 900); }
+      };
+      g.append(b);
+    });
+  }
+  draw();
+}
+
+/* task 3: catcher */
+function catcher(win){
+  head(3, 'Лови любовь', 'Лови сердечки 💗 и бабл ти 🧋. Разбитые 💔 отнимают очко. Нужно 15');
+  sheet.insertAdjacentHTML('beforeend', `<p class="q" id="score">0 / 15</p><canvas id="game"></canvas><button class="btn" id="startG">Старт</button>`);
+  const c = $('#game'), x = c.getContext('2d'), W = 320, H = 380, d = devicePixelRatio||1;
+  c.width = W*d; c.height = H*d; x.setTransform(d,0,0,d,0,0);
+  let bx = W/2, items = [], score = 0, run = false, last = 0, spawnT = 0, raf, flash = 0;
+  const setX = e => { const r = c.getBoundingClientRect(); bx = Math.max(24, Math.min(W-24, (e.clientX - r.left) * W / r.width)); };
+  c.addEventListener('pointermove', setX); c.addEventListener('pointerdown', setX);
+  const key = e => { if(e.key==='ArrowLeft') bx=Math.max(24,bx-26); if(e.key==='ArrowRight') bx=Math.min(W-24,bx+26); };
+  addEventListener('keydown', key);
+  function frame(t){
+    const dt = Math.min(40, t - (last||t)); last = t;
+    if(run){
+      spawnT -= dt;
+      if(spawnT <= 0){ spawnT = 520 + Math.random()*260; const r = Math.random();
+        items.push({x: 20 + Math.random()*(W-40), y:-20, v:.13 + Math.random()*.09 + score*.004, e: r<.18?'💔': r<.6?'💗':'🧋'}); }
+      for(const it of items){ it.y += it.v*dt;
+        if(!it.hit && it.y > H-58 && it.y < H-22 && Math.abs(it.x - bx) < 34){ it.hit = true;
+          if(it.e==='💔'){ score = Math.max(0, score-1); flash = 250; } else score++;
+          $('#score').textContent = score + ' / 15';
+          if(score >= 15){ run = false; setTimeout(win, 500); } } }
+      items = items.filter(it => !it.hit && it.y < H+30);
+    }
+    x.clearRect(0,0,W,H);
+    if(flash > 0){ flash -= dt; x.fillStyle = 'rgba(255,79,132,.18)'; x.fillRect(0,0,W,H); }
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = '28px serif'; items.forEach(it => x.fillText(it.e, it.x, it.y));
+    x.font = '42px serif'; x.fillText('🧺', bx, H-34);
+    raf = requestAnimationFrame(frame);
+  }
+  raf = requestAnimationFrame(frame);
+  $('#startG').onclick = e => { run = true; e.target.remove(); };
+  stopGame = () => { cancelAnimationFrame(raf); removeEventListener('keydown', key); };
+}
+
+/* task 4: memory */
+function memory(win){
+  head(4, 'Найди пару', 'Открывай карточки и ищи одинаковые фото');
+  const g = document.createElement('div'); g.className = 'memory'; sheet.append(g);
+  const imgs = [1,3,4,5,6,9];
+  const deck = [...imgs, ...imgs].sort(() => Math.random() - .5);
+  let open = [], got = 0, lock = false;
+  deck.forEach(n => {
+    const b = document.createElement('button'); b.className = 'card'; b.dataset.n = n; b.setAttribute('aria-label','Карточка');
+    b.innerHTML = `<div class="in"><div class="b">♥</div><div class="f" style="background-image:url(${PH(n)})"></div></div>`;
+    b.onclick = () => {
+      if(lock || b.classList.contains('open') || b.classList.contains('got')) return;
+      b.classList.add('open'); open.push(b);
+      if(open.length === 2){
+        lock = true; const [a, c] = open;
+        if(a.dataset.n === c.dataset.n){ setTimeout(() => { a.classList.add('got'); c.classList.add('got'); open = []; lock = false; got++; if(got === imgs.length) setTimeout(win, 600); }, 350); }
+        else setTimeout(() => { a.classList.remove('open'); c.classList.remove('open'); open = []; lock = false; }, 850);
+      }
+    };
+    g.append(b);
+  });
+}
+
+/* task 5: text answer */
+function textQ(win){
+  head(5, 'Последний вопрос', '');
+  sheet.insertAdjacentHTML('beforeend', `<p class="q">Какую пиццу мы впервые съели вместе в Додо?</p>
+    <form id="tf" style="display:flex;flex-direction:column;gap:12px;width:100%"><input class="answer" id="ta" autocomplete="off" placeholder="Твой ответ"><button class="btn" type="submit">Ответить</button></form><p class="hint" id="th"></p>`);
+  let n = 0;
+  $('#tf').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = $('#ta').value.toLowerCase().trim();
+    if(/пест|pest/.test(v)){ $('#th').textContent = 'Да!!! 💚'; setTimeout(win, 700); return; }
+    n++; const f = $('#tf'); f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
+    $('#th').textContent = n < 2 ? 'Не-а, вспоминай 🍕' : 'Подсказка: она зелёная и мы её обожаем 💚';
+  });
+  setTimeout(() => $('#ta').focus(), 300);
+}
+
+/* ---------- finale ---------- */
+function healAndFinish(){
+  $('#heartWrap').classList.add('healed');
+  burst(90);
+  setTimeout(showFinale, 2600);
+}
+const letter = "Жарыгым, прости меня, пожалуйста. Я действительно многое переосмыслил и наконец осознал одну очень важную вещь: любить человека — значит не просто любить его так, как умеешь ты, а стараться относиться к нему так, как ему самому необходимо чувствовать эту любовь.\n\nЯ раньше воспринимал многие такие моменты как мелочи, думал, что всё это можно отложить на потом, что когда будем рядом, я обязательно всё сделаю. Но теперь понимаю, что дело было вовсе не в деньгах, подарках или каких-то больших поступках. Дело было в элементарном внимании, заботе и желании порадовать тебя. В том, чтобы ты чувствовала, что я думаю о тебе, даже когда меня нет рядом.\n\nМне очень жаль, что тебе приходилось просить о том, что я сам должен был замечать. Жаль, что ты столько раз расстраивалась из-за подобных ситуаций, а я не находил в себе сил вовремя это понять и исправить. Я не хочу, чтобы рядом со мной ты чувствовала себя человеком, которому нужно выпрашивать любовь и внимание.\n\nЖаным, я всегда относился к тебе серьёзно. У меня никогда не было мысли, что мне всё равно на тебя или на твои чувства. Но я понимаю, что одних моих чувств недостаточно, если ты не ощущаешь их в моих поступках.\n\nЯ люблю тебя и хочу строить наше будущее только с тобой. Не хочу просто обещать, что изменюсь. Хочу, чтобы ты увидела это по моим действиям. Я не могу вернуть моменты, когда тебе было обидно, но могу сделать всё, чтобы в будущем ты больше не чувствовала себя забытой или недооценённой.\n\nПрости меня, моя жанекаам. Ты заслуживаешь не только слышать, как сильно я тебя люблю, но и чувствовать это каждый день.";
+function showFinale(){
+  $('#lock').hidden = true; $('#quest').hidden = true; $('#finale').hidden = false; scrollTo(0,0);
+  const svg = document.querySelector('#heartWrap svg');
+  svg.querySelectorAll('.piece').forEach(g => { g.classList.add('done'); g.classList.remove('active'); g.style.transform = 'none'; });
+  $('#finalHeart').append(svg);
+  setTimeout(() => $('#letter').scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'center'}), 1800);
+  $('#days').textContent = Math.floor((Date.now() - new Date(2025,2,25)) / 864e5);
+  const t = $('#letterText'); let i = 0;
+  const done = () => { $('#skipHint').hidden = true; t.classList.remove('caret'); t.insertAdjacentHTML('afterend','<span class="sign">Твой, навсегда ❤️</span>'); $('#ask').hidden = false; };
+  if(reduce){ t.textContent = letter; done(); return; }
+  let skipped = false;
+  $('#letter').addEventListener('click', () => { if(!skipped && i < letter.length){ skipped = true; i = letter.length; t.textContent = letter; done(); } });
+  (function type(){ if(skipped) return; t.textContent = letter.slice(0, ++i); if(i < letter.length) setTimeout(type, letter[i-1] === '\n' ? 300 : /[.,—:]/.test(letter[i-1]) ? 110 : 16); else setTimeout(done, 500); })();
+}
+
+const noLines = ['Нет','Точно?','Подумай ещё','Ну пожалуйста 🥺','Жарыгым…','Не получится 😄','Кнопка сломалась','Только «Да» ❤️'];
+let noN = 0, yesScale = 1;
+function runAway(e){
+  if(e) e.preventDefault();
+  const no = $('#no'), box = $('#ask');
+  noN++; no.textContent = noLines[Math.min(noN, noLines.length-1)];
+  yesScale = Math.min(2.2, yesScale + .14); $('#yes').style.transform = `scale(${yesScale})`;
+  no.classList.add('run');
+  const bw = box.clientWidth - no.offsetWidth, bh = box.clientHeight - no.offsetHeight;
+  no.style.left = Math.max(0, Math.random()*bw) + 'px';
+  no.style.top = Math.max(60, Math.random()*bh) + 'px';
+}
+$('#no').addEventListener('pointerenter', e => { if(e.pointerType === 'mouse') runAway(); });
+$('#no').addEventListener('pointerdown', runAway);
+$('#no').addEventListener('click', runAway);
+$('#yes').onclick = () => {
+  $('#ask').hidden = true; $('#after').hidden = false;
+  $('#gallery').innerHTML = [
+    [8,'Самое первое фото'],[7,'Стамбул'],[1,'Твой день рождения'],[2,'Кино'],[3,'Парк аттракционов'],[4,'Свадьба друга'],
+    [5,'Просто мы 😜'],[6,'Боулинг в Денизли'],[9,'Встретил тебя из аэропорта'],[10,'Горнолыжка'],[11,'Первая валентинка']
+  ].map(([n,c]) => `<figure><img src="${PH(n)}" alt="${c}" loading="lazy"><figcaption>${c}</figcaption></figure>`).join('');
+  burst(220); setTimeout(() => burst(160), 900);
+  $('#after').scrollIntoView({behavior: reduce ? 'auto' : 'smooth'});
+};
+
+/* ---------- confetti hearts ---------- */
+function burst(n){
+  const c = $('#confetti'), x = c.getContext('2d'), d = devicePixelRatio||1, W = innerWidth, H = innerHeight;
+  c.width = W*d; c.height = H*d; x.setTransform(d,0,0,d,0,0);
+  const em = ['💗','❤️','💖','✨','🌸'];
+  const ps = Array.from({length:n}, () => ({x: W/2, y: H*.45, vx:(Math.random()-.5)*12, vy:-Math.random()*13-3, s: 14+Math.random()*16, e: em[Math.floor(Math.random()*em.length)], r: Math.random()*6, vr:(Math.random()-.5)*.2, l: 1}));
+  (function loop(){
+    x.clearRect(0,0,W,H); let alive = 0;
+    for(const p of ps){ if(p.l <= 0) continue; alive++; p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.l -= .006;
+      x.save(); x.globalAlpha = Math.max(0, p.l); x.translate(p.x, p.y); x.rotate(p.r); x.font = p.s + 'px serif'; x.fillText(p.e, 0, 0); x.restore(); }
+    if(alive) requestAnimationFrame(loop); else x.clearRect(0,0,W,H);
+  })();
+}
+
+/* ---------- start ---------- */
+if(state.unlocked){ $('#lock').hidden = true; showQuest(); }
+</script>
+
+</body>
+</html>
